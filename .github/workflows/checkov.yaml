@@ -1,0 +1,60 @@
+name: Terraform Security & Validation
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-checkov:
+    name: Terraform Validation & Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name:  Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name:  Instalar Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name:  Instalar Checkov (Escaneamento de Segurança)
+        run: |
+          echo " Instalando Checkov..."
+          pip install checkov
+          checkov --version
+
+      - name:  Inicializar Terraform (`terraform init`)
+        run: terraform init
+
+      - name:  Validar Código Terraform (`terraform fmt`, `terraform validate`)
+        run: |
+          echo " Verificando formatação do código Terraform..."
+          terraform fmt -check -diff || echo " Formatação incorreta! Execute 'terraform fmt' para corrigir."
+
+          echo "🔍 Validando a configuração do Terraform..."
+          terraform validate -no-color || echo " Erro na validação! Corrija os problemas antes de continuar."
+
+      - name:  Instalar TFLint
+        run: |
+          echo " Instalando TFLint..."
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          tflint --version
+
+      - name:  Executar TFLint
+        run: |
+          echo " Executando TFLint para verificar melhores práticas..."
+          tflint --init
+          tflint --format compact || echo " Erros encontrados pelo TFLint! Corrija antes de continuar."
+
+      - name:  Rodar Checkov (Segurança de Infraestrutura)
+        run: |
+          echo " Rodando Checkov para escanear a segurança do código Terraform..."
+          checkov -d . --quiet --compact || echo "⚠ Erros de segurança encontrados! Corrija antes de continuar."
+
+      - name:  Criar Plano (Terraform Plan)
+        run: terraform plan -out=tfplan
