@@ -8,30 +8,30 @@ Sua tarefa é projetar e implantar uma aplicação web altamente disponível na 
 
 ### Requisitos
 
-#### 1. Rede  
+#### 1. Rede  - Levi
 - Criar uma VPC com pelo menos duas subnets públicas e duas privadas distribuídas em múltiplas Zonas de Disponibilidade;  
 - Definir e anexar um Internet Gateway à VPC;  
 - Configurar Tabelas de Rotas para garantir o roteamento adequado entre as subnets públicas e privadas.  
 
-#### 2. Computação (EC2)
+#### 2. Computação (EC2) - Jean
 - Implantar um Auto Scaling Group (ASG) com pelo menos duas instâncias EC2 distribuídas entre diferentes Zonas de Disponibilidade;  
 - Usar um Application Load Balancer (ALB) para distribuir o tráfego entre as instâncias;  
 - Garantir que as IAM Roles e Security Groups estejam configurados corretamente com privilégios mínimos necessários.  
 
-#### 3. Armazenamento
+#### 3. Armazenamento - Vargas
 - Anexar um volume EBS (Elastic Block Store) a cada instância EC2;  
 - Configurar um bucket S3 para armazenar arquivos estáticos da aplicação.
 
-#### 4. Banco de Dados
+#### 4. Banco de Dados - Tania
 - Implantar um banco de dados Amazon RDS (PostgreSQL ou MySQL) em uma subnet privada;  
 - Habilitar a configuração Multi-AZ para alta disponibilidade.
 
-#### 5. Segurança e Monitoramento
+#### 5. Segurança e Monitoramento - Rodrigo
 - Implementar Security Groups e Network ACLs para restringir acessos desnecessários;  
 - Habilitar CloudWatch para monitoramento das instâncias EC2;  
 - Configurar IAM Roles e Policies seguindo o princípio de menor privilégio.
 
-#### 6. Pipeline
+#### 6. Pipeline - Jonatas
 - Implementar pipeline com pelo menos dois stages (PLAN, APPLY)  
 - Adicionar alguma ferramenta de validação de código (Ex. Checkov, GitLeaks, etc)  
 - Adicione o  Terraform-Docs para que a documentação esteja atualizada  
