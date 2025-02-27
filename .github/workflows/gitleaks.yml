@@ -16,3 +16,7 @@ jobs:
         run: |
               trufflehog -h
               trufflehog filesystem ./
+
+      - name: Secret Scanning with TruffleHog
+        run: |
+              trufflehog git file://. --since-commit main --branch feature-1 --results=verified,unknown --fail
