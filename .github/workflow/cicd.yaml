@@ -1,1 +1,49 @@
 
+name: Terraform Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform:
+    name: Terraform Plan & Apply
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Configurar Credenciais AWS
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: echo "Configuração de credenciais AWS concluída!"
+
+      - name: Validar Código Terraform
+        run: |
+          terraform fmt -check
+          terraform validate
+
+      - name: Inicializar Terraform
+        run: terraform init
+
+      - name: Criar Plano (Terraform Plan)
+        run: terraform plan -out=tfplan
+
+      - name: Aplicação (Terraform Apply) - Requer Aprovação
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
