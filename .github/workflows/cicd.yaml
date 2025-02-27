@@ -31,7 +31,10 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: echo "Configuração de credenciais AWS concluída!"
+        run: |
+              echo "Configuração de credenciais AWS concluída!"
+              echo $AWS_ACCESS_KEY_ID
+              echo $AWS_SECRET_ACCESS_KEY
         
       - name: Instalar TFLint
         run: |
@@ -61,6 +64,7 @@ jobs:
 
       - name: Inicializar Terraform
         run: terraform init
+        working-directory: ./
 
       - name: Criar Plano (Terraform Plan)
         run: terraform plan -out=tfplan
