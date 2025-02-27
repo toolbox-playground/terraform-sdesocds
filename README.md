@@ -33,7 +33,8 @@ Sua tarefa é projetar e implantar uma aplicação web altamente disponível na 
 
 #### 6. Pipeline
 - Implementar pipeline com pelo menos dois stages (PLAN, APPLY)  
-- Adicionar alguma ferramenta de validação de código  
+- Adicionar alguma ferramenta de validação de código (Ex. Checkov, GitLeaks, etc)  
+- Adicione o  Terraform-Docs para que a documentação esteja atualizada  
 
 ## Tarefas Bônus 🎯
 
