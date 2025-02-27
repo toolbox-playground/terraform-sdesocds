@@ -95,6 +95,22 @@ resource "aws_subnet" "private_subnet2" {
   }
 }
 
+# Criando Elastic IP para NAT Gateway
+resource "aws_eip" "nat_eip" {
+  depends_on = [aws_internet_gateway.main_gateway]
+}
+
+# Criando NAT Gateway para Subnets Privadas
+resource "aws_nat_gateway" "nat_gateway" {
+  allocation_id = aws_eip.nat_eip.id
+  subnet_id     = aws_subnet.public_subnet1.id
+
+  tags = {
+    Name = "Main-NAT-Levi"
+  }
+
+  depends_on = [aws_internet_gateway.main_gateway]
+}
 
 # Criando a Tabela de Rotas para subnets privadas
 resource "aws_route_table" "private_route_table" {
@@ -102,21 +118,10 @@ resource "aws_route_table" "private_route_table" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    nat_gateway_id = aws_internet_gateway.main_gateway.id
+    nat_gateway_id = aws_nat_gateway.nat_gateway.id  # Aqui corrige para usar a NAT Gateway
   }
 
   tags = {
     Name = "private-route-table"
   }
-}
-
-# Associando subnets privadas à Tabela de Rotas privada
-resource "aws_route_table_association" "private_subnet_1_assoc" {
-  subnet_id      = aws_subnet.private_subnet1.id
-  route_table_id = aws_route_table.private_route_table.id
-}
-
-resource "aws_route_table_association" "private_subnet_2_assoc" {
-  subnet_id      = aws_subnet.private_subnet2.id
-  route_table_id = aws_route_table.private_route_table.id
 }

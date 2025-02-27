@@ -31,13 +31,13 @@ variable "subnet_private_cidr_2" {
 variable "subnet_az1" {
   description = "Zona de disponibilidade da Subnet"
   type        = string
-  default     = "us-west-1"
+  default     = "us-west-2"
 }
 
 variable "subnet_az2" {
   description = "Zona de disponibilidade da Subnet"
   type        = string
-  default     = "us-west-2"
+  default     = "us-west-2c"
 }
 
 
