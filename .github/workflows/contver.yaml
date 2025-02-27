@@ -1,0 +1,56 @@
+name: Terraform Versioning & Deployment
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  terraform:
+    name: Terraform Plan & Apply with Versioning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name:  Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name:  Determinar Versão do Deploy
+        id: version
+        run: |
+          echo " Buscando a última versão..."
+          LAST_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
+          echo " Última versão encontrada: $LAST_VERSION"
+
+          echo " Incrementando versão..."
+          NEW_VERSION=$(echo $LAST_VERSION | awk -F. '{print $1"."$2"."$3+1}')
+          echo " Nova versão: $NEW_VERSION"
+
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name:  Instalar Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name:  Inicializar Terraform (`terraform init`)
+        run: terraform init
+
+      - name:  Criar Plano (`terraform plan`)
+        run: terraform plan -out=tfplan -var="app_version=${{ env.VERSION }}"
+
+      - name:  Aplicação (`terraform apply`) - Requer Aprovação
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve -var="app_version=${{ env.VERSION }}"
+
+      - name:  Criar Tag no GitHub
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo " Criando nova tag ${{ env.VERSION }}"
+          git tag ${{ env.VERSION }}
+          git push origin ${{ env.VERSION }}
