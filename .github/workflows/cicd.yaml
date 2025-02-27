@@ -1,34 +1,49 @@
-provider "aws" {
-  region = "us-west-2"
-  alias  = "us_west_2"
-}
 
-provider "aws" {
-  region = "us-east-2"
-  alias  = "us_east_2"
-}
+name: Terraform Pipeline
 
-resource "aws_instance" "instance" {
-  for_each = toset(var.regions)
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-  provider      = aws.${each.value == "us-west-2" ? "us_west_2" : "us_east_2"}
-  ami           = var.ami_map[each.value]
-  instance_type = var.instance_type
-  key_name      = var.key_name
+permissions:
+  id-token: write
+  contents: read
 
-  tags = {
-    Name = "Desafio-${each.value}"
-  }
-}
+jobs:
+  terraform:
+    name: Terraform Plan & Apply
+    runs-on: ubuntu-latest
 
-output "instance_ids" {
-  value = {
-    for k, v in aws_instance.instance : k => v.id
-  }
-}
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
 
-output "instance_ips" {
-  value = {
-    for k, v in aws_instance.instance : k => v.public_ip
-  }
-}
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Configurar Credenciais AWS
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: echo "Configuração de credenciais AWS concluída!"
+
+      - name: Validar Código Terraform
+        run: |
+          terraform fmt -check
+          terraform validate
+
+      - name: Inicializar Terraform
+        run: terraform init
+
+      - name: Criar Plano (Terraform Plan)
+        run: terraform plan -out=tfplan
+
+      - name: Aplicação (Terraform Apply) - Requer Aprovação
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
