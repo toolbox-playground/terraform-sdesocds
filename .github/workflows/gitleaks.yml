@@ -9,5 +9,14 @@ jobs:
         with:
           fetch-depth: 0
           
-      - name: Executar o GitLeaks com Docker  # Passo para executar o GitLeaks com Docker
-        run: docker run -v ${{ github.workspace }}:/path ghcr.io/gitleaks/gitleaks:latest detect --source="/path" -v
+      - name: Install TruffleHog
+        run: mkdir sec && cd sec && curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+  
+      - name: Secret Scanning with TruffleHog
+        run: |
+              trufflehog -h
+              trufflehog filesystem .
+
+      - name: Secret Scanning with TruffleHog
+        run: |
+              trufflehog git file://. --since-commit main --branch feature-1 --results=verified,unknown --fail
