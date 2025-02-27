@@ -7,7 +7,7 @@ module "ec2_instances" {
 }
 
 module "redes" {
-  source = "./module/redes"
+  source = "./module/rede"
 
   vpc_cidr              = "10.0.0.0/16"
   subnet_public_cidr_1  = "10.0.1.0/24"
