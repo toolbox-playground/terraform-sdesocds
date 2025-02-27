@@ -35,8 +35,12 @@ jobs:
 
       - name: Validar Código Terraform
         run: |
-          terraform fmt -check
-          terraform validate
+          echo "🔍 Verificando formatação do código Terraform..."
+          terraform fmt -check -diff || echo " Formatação incorreta! Execute 'terraform fmt' para corrigir."
+
+          echo "🔍 Validando a configuração do Terraform..."
+          terraform validate -no-color || echo " Erro na validação! Corrija os problemas antes de continuar."
+
 
       - name: Inicializar Terraform
         run: terraform init
