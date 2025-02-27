@@ -26,13 +26,12 @@ jobs:
         with:
           terraform_version: 1.5.0
 
-      - name:  Configurar Credenciais AWS
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: |
-          echo " Verificando credenciais AWS..."
-          aws sts get-caller-identity || echo " Falha ao autenticar na AWS!"
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "us-west-2"
 
       - name:  Validar Código Terraform
         run: |
