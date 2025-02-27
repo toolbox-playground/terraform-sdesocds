@@ -8,32 +8,27 @@ provider "aws" {
   alias  = "us_east_2"
 }
 
-resource "aws_instance" "west_instance" {
-  provider        = aws.us_west_2
-  ami             = var.ami_map["us-west-2"]
-  instance_type   = var.instance_type
+resource "aws_instance" "instance" {
+  for_each = toset(var.regions)
+
+  provider      = aws.${each.value == "us-west-2" ? "us_west_2" : "us_east_2"}
+  ami           = var.ami_map[each.value]
+  instance_type = var.instance_type
+  key_name      = var.key_name
 
   tags = {
-    Name = "Desafio-west"
+    Name = "Desafio-${each.value}"
   }
-
 }
 
-resource "aws_instance" "east_instance" {
-  provider        = aws.us_east_2
-  ami             = var.ami_map["us-east-2"]
-  instance_type   = var.instance_type
-
-  tags = {
-    Name = "Desafio-east"
+output "instance_ids" {
+  value = {
+    for k, v in aws_instance.instance : k => v.id
   }
-
 }
 
-output "west_instance_id" {
-  value = aws_instance.west_instance.id
-}
-
-output "east_instance_id" {
-  value = aws_instance.east_instance.id
+output "instance_ips" {
+  value = {
+    for k, v in aws_instance.instance : k => v.public_ip
+  }
 }
