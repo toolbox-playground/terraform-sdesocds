@@ -1,5 +1,14 @@
-variable "aws_region" {
-  description = "AWS region to deploy the infrastructure"
+variable "AMIS" {
+  description = "Mapping of regions to AMI IDs"
+  type        = map(string)
+  default = {
+    "us-west-2" = "ami-0cf2b4e024cdb6960",
+    "us-east-2" = "ami-05803413c51f242b7"
+  }
+}
+
+variable "AWS_REGION" {
+  description = "AWS region for deployment"
   type        = string
-  default     = "us-east-1"
+  default     = "us-west-2"  # Defina um valor padrão ou passe no `terraform.tfvars`
 }
