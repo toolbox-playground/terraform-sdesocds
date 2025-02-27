@@ -15,7 +15,7 @@ jobs:
       - name: Secret Scanning with TruffleHog
         run: |
               trufflehog -h
-              trufflehog filesystem ./
+              trufflehog filesystem .
 
       - name: Secret Scanning with TruffleHog
         run: |
