@@ -12,3 +12,8 @@ variable "AWS_REGION" {
   type        = string
   default     = "us-west-2"  # Defina um valor padrão ou passe no `terraform.tfvars`
 }
+variable "app_version" {
+  description = "Versão da aplicação"
+  type        = string
+  default     = "v1.0.0"
+}
