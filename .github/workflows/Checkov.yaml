@@ -2,6 +2,8 @@ name: Terraform Security & Validation
 
 on:
   push:
+    branches:
+      - main
   pull_request:
 
 permissions:
