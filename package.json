@@ -1,6 +1,6 @@
 {
   "name": "projeto terraform",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Desafio Terraform AWS: Construção de uma Aplicação Web Altamente Disponível",
   "main": "index.js",
   "scripts": {
