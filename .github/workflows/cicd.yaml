@@ -15,21 +15,21 @@ on:
       - 'CHANGELOG.md'
       - 'package.json'
       - 'package-lock.json'
-        
+
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  terraform:
-    name: Terraform Plan & Apply
+  terraform-plan:
+    name: Terraform Plan
     runs-on: ubuntu-latest
 
     steps:
-      - name:  Checkout do Repositório
+      - name: Checkout do Repositório
         uses: actions/checkout@v4
 
-      - name:  Instalar Terraform
+      - name: Instalar Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.0
@@ -41,32 +41,101 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: "us-west-2"
 
-      - name:  Instalar TFLint
+      - name: Instalar TFLint
         run: |
-          echo " Instalando TFLint..."
+          echo "Instalando TFLint..."
           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
           tflint --version
 
-      - name:  Executar TFLint
+      - name: Executar TFLint
         run: |
-          echo " Executando TFLint para verificar melhores práticas..."
+          echo "Executando TFLint para verificar melhores práticas..."
           tflint --init
-          tflint --format compact || echo " Erros encontrados pelo TFLint! Corrija antes de continuar."
+          tflint --format compact || echo "Erros encontrados pelo TFLint! Corrija antes de continuar."
 
-      - name:  Inicializar Terraform (init)
+      - name: Inicializar Terraform (init)
         run: terraform init
-        
-      - name:  Validar Código Terraform
+
+      - name: Validar Código Terraform
         run: |
-          echo " Verificando formatação do código Terraform..."
-          terraform fmt -check -diff || echo " Formatação incorreta! Execute 'terraform fmt' para corrigir."
+          echo "Verificando formatação do código Terraform..."
+          terraform fmt -check -diff || echo "Formatação incorreta! Execute 'terraform fmt' para corrigir."
 
-          echo " Validando a configuração do Terraform..."
-          terraform validate -no-color || echo " Erro na validação! Corrija os problemas antes de continuar."
+          echo "Validando a configuração do Terraform..."
+          terraform validate -no-color || echo "Erro na validação! Corrija os problemas antes de continuar."
 
-      - name:  Criar Plano (Terraform Plan)
+      - name: Criar Plano (Terraform Plan)
         run: terraform plan -out=tfplan
 
-      - name:  Aplicação (Terraform Apply) - Requer Aprovação
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve
+      - name: Upload Terraform Plan Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-plan
+          path: tfplan
+
+  terraform-checkov:
+    name: Checkov Security Scan
+    runs-on: ubuntu-latest
+    needs: terraform-plan  # Runs after the terraform-plan job
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+          
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "us-west-2"          
+
+      - name: Instalar Checkov (Escaneamento de Segurança)
+        run: |
+          echo "Instalando Checkov..."
+          pip install checkov
+          checkov --version
+
+      - name: Inicializar Terraform (`terraform init`)
+        run: terraform init
+
+      - name: Rodar Checkov (Segurança de Infraestrutura)
+        run: |
+          echo "Rodando Checkov para escanear a segurança do código Terraform..."
+          checkov -d . --quiet --compact || echo "Erros de segurança encontrados! Corrija antes de continuar."
+
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: [terraform-plan, terraform-checkov]  # Requires both previous jobs to complete successfully
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "us-west-2"
+
+      - name: Baixar Terraform Plan Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: terraform-plan
+          path: .
+
+      - name: Aplicação (Terraform Apply) - Requer Aprovação
+        run: terraform apply -auto-approve tfplan
