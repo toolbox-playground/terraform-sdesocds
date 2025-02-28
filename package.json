@@ -1,0 +1,12 @@
+{
+  "name": "projeto terraform",
+  "version": "1.0.0",
+  "description": "Desafio Terraform AWS: Construção de uma Aplicação Web Altamente Disponível",
+  "main": "index.js",
+  "scripts": {
+    "release": "commit-and-tag-version"
+  },
+  "author": "",
+  "license": "ISC",
+  "keywords": []
+}
